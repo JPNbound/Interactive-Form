@@ -83,14 +83,17 @@ registerForActivities.addEventListener('change', (event) => {
 // Handle focus and blur events for activity checkboxes
 const activityCheckboxes = document.querySelectorAll('#activities input[type="checkbox"]');
 activityCheckboxes.forEach(checkbox => {
-  checkbox.addEventListener('focus', (event) => {
-    event.target.parentElement.classList.add('focused');
-    console.log('Focused on:', event.target.name);
+  checkbox.addEventListener('focus', () => {
+
+    checkbox.classList.add('focus');
+    checkbox.parentElement.classList.add('focus');
+    
   });
 
-  checkbox.addEventListener('blur', (event) => {
-    event.target.parentElement.classList.remove('focused');
-    console.log('Blurred from:', event.target.name);
+  checkbox.addEventListener('blur', () => {
+    checkbox.classList.remove('focus');
+    checkbox.parentElement.classList.remove('focus');
+    
   });
 });
 
@@ -115,12 +118,15 @@ payment.addEventListener('change', (event) => {
   if (selectedPayment === 'paypal') {
     paypal.style.display = 'block';
     bitcoin.style.display = 'none';
+    creditCard.style.display = 'none';
   } else if (selectedPayment === 'bitcoin') {
     bitcoin.style.display = 'block';
     paypal.style.display = 'none';
+    creditCard.style.display = 'none';
   } else {
     paypal.style.display = 'none';
     bitcoin.style.display = 'none';
+    creditCard.style.display = 'block';
   }
 });
 
@@ -135,12 +141,13 @@ const form = document.querySelector('form');
 function validateField(fieldElement, validationTest) {
   const fieldParent = fieldElement.parentElement;
   const errorMessage = fieldParent.lastElementChild; // The last child is assumed to be the error message.
-
+  
   if (!validationTest(fieldElement.value)) {
     // If the field is invalid
     fieldParent.classList.add('not-valid');
     fieldParent.classList.remove('valid');
     errorMessage.style.display = 'block'; // Show the error message
+    
   } else {
     // If the field is valid
     fieldParent.classList.add('valid');
@@ -151,37 +158,46 @@ function validateField(fieldElement, validationTest) {
 
 // Form submission event listener
 form.addEventListener('submit', (e) => {
-  e.preventDefault();
+  
   
   // Validate Name
   validateField(nameElement, (value) => /^[a-zA-Z]+ ?[a-zA-Z]*? ?[a-zA-Z]*?$/.test(value));
-
+  e.preventDefault();
   // Validate Email
   validateField(email, (value) => /^[^@]+@[^@.]+\.[a-z]+$/i.test(value));
-
+  e.preventDefault();
   // Validate Zipcode
   validateField(zipcode, (value) => /^\d{5}$/.test(value));
-
+  e.preventDefault();
   // Validate CVV
   validateField(cvv, (value) => /^\d{3}$/.test(value));
-
+  e.preventDefault();
   // Ensure at least one activity is selected
-  const activityIsChosen = totalCost >= 100;
-  if (!activityIsChosen) {
-    alert("You must choose at least 1 activity");
-  } else {
-    console.log('You have met minimum activity requirements');
-  }
+  const activityIsChosen = totalCost > 0; // If total cost is > 0, at least one activity is selected
+if (!activityIsChosen) {
+  registerForActivities.classList.add('not-valid'); // Mark the activities section as invalid
+  registerForActivities.classList.remove('valid'); // Remove the valid class
+  document.getElementById('activities-hint').style.display = 'block';
+  e.preventDefault();
+}
+
+else {
+  registerForActivities.classList.add('valid'); // Mark the activities section as valid
+  registerForActivities.classList.remove('not-valid'); // Remove the invalid class
+  document.getElementById('activities-hint').style.display = 'none';
+}
 
   // Credit Card specific validation
   if (payment.value === 'credit-card') {
     // Validate card number
     validateField(cardNumber, (value) => /^\d{13,16}$/.test(value));
-
+    e.preventDefault();
     // Validate CVV
     validateField(cvv, (value) => /^\d{3}$/.test(value));
-
+    e.preventDefault();
     // Validate Zipcode
     validateField(zipcode, (value) => /^\d{5}$/.test(value));
+    e.preventDefault();
   }
 });
+
